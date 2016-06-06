@@ -8,9 +8,6 @@
   },
   "author": "blackpost38@gmail.com",
   "license": "ISC",
-  "devDependenes": {
-  },
-  "dependencies": {
-    "express": "^4.13.4"
-  }
+  "devDependenes": {},
+  "dependencies": {}
 }
