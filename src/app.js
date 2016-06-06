@@ -4,17 +4,38 @@ const fs = require('fs');
 const readline = require('readline');
 
 const app = express();
-const TARGET_FILE_DIR = `${__dirname}/../csv/MOCK_DATA.csv`;
+const TARGET_FILE_DIR = `${__dirname}/../csv/dummy.csv`;
 const NEW_FILE_DIR = `${__dirname}/../csv/new_dummy.csv`;
 const REPETITION_COUNT = 3;
+
+app.use(express.static('csv'));
 
 app.get('/', (request, response) => {
   response.render('index.ejs');
 })
 
 app.get('/execute', (request, response) => {
-  response.json({
-    bar: 'foo'
+  var line_index = 1;
+  const writable = fs.createWriteStream(NEW_FILE_DIR); 
+  const rl = readline.createInterface({
+    input: fs.createReadStream(TARGET_FILE_DIR)
+  });
+  rl.on('line', (line) => {
+    // extending records logic
+    if (line_index === 1) { // if it is header
+      writable.write(`${line}\n`);
+      line_index++;
+    } else {
+      var count = 0
+      while (count < REPETITION_COUNT) {
+        writable.write(`${line}\n`);
+        count++;
+      }
+    }
+  }).on('close', () => {
+    response.json({
+      link: 'http://localhost:3000/new_dummy.csv'
+    });
   });
 })
 

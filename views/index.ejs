@@ -7,6 +7,7 @@
   <body>
     <div>
       <button onclick="execute();">execute</button>
+      <p id="result"></p>
     </div>
     <script>
       function execute () {
@@ -26,6 +27,21 @@
           request.send();
         }).then((data) => {
           console.log('result data', data);
+          // remove all child node
+          let targetEl = document.querySelector('#result');
+          if (targetEl.hasChildNodes()) {
+            const childNodes = targetEl.childNodes;
+            for (var i = 0; i < childNodes.length; i++) {
+              targetEl.removeChild(childNodes[i]);
+            }
+          }
+
+          // append anchor element
+          let anchor = document.createElement('a');
+          let text = document.createTextNode('download csv file');
+          anchor.appendChild(text);
+          anchor.href = data.link;
+          targetEl.appendChild(anchor);
         }).catch((error) => {
           console.error('error', error);
         });
