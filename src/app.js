@@ -6,7 +6,38 @@ const readline = require('readline');
 const app = express();
 const TARGET_FILE_DIR = `${__dirname}/../csv/dummy.csv`;
 const NEW_FILE_DIR = `${__dirname}/../csv/new_dummy.csv`;
-const REPETITION_COUNT = 3;
+
+const appendField = (line, repetitionCountParam, isHeaderParam) => {
+  const repetitionCount = repetitionCountParam || 3;
+  const isHeader = isHeaderParam || false;
+  if (!line) {
+    throw Error('line is a required argument');
+  }
+
+  let newFields = [], count = 0;
+  if (isHeader) {
+    let fields = line.split(',');
+    while (count < repetitionCount) {
+      newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
+      count++;
+    }
+  } else {
+    while (count < repetitionCount) {
+      newFields.push(line);
+      count++;
+    }
+  }
+  return newFields.join(',');
+};
+
+const appendRecord = (line, repetitionCount) => {
+  let newRecords = [], count = 0
+  while (count < repetitionCount) {
+    newRecords.push(`${line}\n`);
+    count++;
+  }
+  return newRecords.join('');
+};
 
 app.use(express.static('csv'));
 
@@ -15,77 +46,49 @@ app.get('/', (request, response) => {
 })
 
 app.get('/execute', (request, response) => {
-  const logicType = +request.query.logicType;
+  const expansionType = +request.query.expansionType;
   const repetitionCount = +request.query.repetitionCount;
-  console.log('params', logicType, repetitionCount)
 
-  var line_index = 1;
+  let isHeaderLine = true;
   const writable = fs.createWriteStream(NEW_FILE_DIR); 
   const rl = readline.createInterface({
     input: fs.createReadStream(TARGET_FILE_DIR)
   });
   rl.on('line', (line) => {
-    switch (logicType) {
-      case 3:
-        // extending fields and records logic
-        if (line_index === 1) {
-          var fields = line.split(',');
-          var newFields = [];
-          var count = 0;
-          while (count < repetitionCount) {
-            newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
-            count++;
-          }
-          writable.write(newFields.join(',') + '\n');
-          line_index++;
+    console.log('Line from file:', line);
+    switch (expansionType) {
+      case 3: // extending fields and records logic
+        if (isHeaderLine) {
+          let appendedHeader = appendField(line, repetitionCount, true);
+          writable.write(`${appendedHeader}\n`);
+          isHeaderLine = false;
         } else {
-          var countRocord = 0; 
+          let countRocord = 0; 
           while (countRocord < repetitionCount) {
-            var countField = 0;
-            var newRecords = [];
-            while (countField < repetitionCount) {
-              newRecords.push(line);
-              countField++;
-            }
-            writable.write(newRecords.join(',') + '\n');
+            let appendedField = appendField(line, repetitionCount);
+            writable.write(`${appendedField}\n`);
             countRocord++; 
           }
         }
         break;
-      case 2:
-        // extending fields logic
-        if (line_index === 1) {
-          var fields = line.split(',');
-          var newFields = [];
-          var count = 0;
-          while (count < repetitionCount) {
-            newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
-            count++;
-          }
-          writable.write(newFields.join(',') + '\n');
-          line_index++;
+      case 2: // extending fields logic
+        if (isHeaderLine) {
+          let appendedHeader = appendField(line, repetitionCount, true);
+          writable.write(`${appendedHeader}\n`);
+          isHeaderLine = false;
         } else {
-          var count = 0;
-          var newRecords = [];
-          while (count < repetitionCount) {
-            newRecords.push(line);
-            count++;
-          }
-          writable.write(newRecords.join(',') + '\n');
+          let appendedField = appendField(line, repetitionCount);
+          writable.write(`${appendedField}\n`);
         }
         break;
-      case 1:
-      default: 
-        // extending records logic
-        if (line_index === 1) { // if it is header
+      case 1: // extending records logic
+      default:
+        if (isHeaderLine) { // if it is header
           writable.write(`${line}\n`);
-          line_index++;
+          isHeaderLine = false;
         } else {
-          var count = 0
-          while (count < repetitionCount) {
-            writable.write(`${line}\n`);
-            count++;
-          }
+          let appendedRecord = appendRecord(line, repetitionCount);
+          writable.write(appendedRecord);
         }
     }
   }).on('close', () => {
@@ -94,75 +97,5 @@ app.get('/execute', (request, response) => {
     });
   });
 })
-
-// const app = http.createServer((request, response) => {
-//   var line_index = 1;
-//   const writable = fs.createWriteStream(NEW_FILE_DIR); 
-//   const rl = readline.createInterface({
-//     input: fs.createReadStream(TARGET_FILE_DIR)
-//   });
-//   rl.on('line', (line) => {
-//     // extending fields and records logic
-//     if (line_index === 1) {
-//       var fields = line.split(',');
-//       var newFields = [];
-//       var count = 0;
-//       while (count < REPETITION_COUNT) {
-//         newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
-//         count++;
-//       }
-//       writable.write(newFields.join(',') + '\n');
-//       line_index++;
-//     } else {
-//       var countRocord = 0; 
-//       while (countRocord < REPETITION_COUNT) {
-//         var countField = 0;
-//         var newRecords = [];
-//         while (countField < REPETITION_COUNT) {
-//           newRecords.push(line);
-//           countField++;
-//         }
-//         writable.write(newRecords.join(',') + '\n');
-//         countRocord++; 
-//       }
-//     }
-    
-//     // // extending fields logic
-//     // console.log('Line from file:', line);
-//     // if (line_index === 1) {
-//     //   var fields = line.split(',');
-//     //   var newFields = [];
-//     //   var count = 0;
-//     //   while (count < REPETITION_COUNT) {
-//     //     newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
-//     //     count++;
-//     //   }
-//     //   writable.write(newFields.join(',') + '\n');
-//     //   line_index++;
-//     // } else {
-//     //   var count = 0;
-//     //   var newRecords = [];
-//     //   while (count < REPETITION_COUNT) {
-//     //     newRecords.push(line);
-//     //     count++;
-//     //   }
-//     //   writable.write(newRecords.join(',') + '\n');
-//     // }
-    
-//     // // extending records logic
-//     // if (line_index === 1) { // if it is header
-//     //   writable.write(`${line}\n`);
-//     //   line_index++;
-//     // } else {
-//     //   var count = 0
-//     //   while (count < REPETITION_COUNT) {
-//     //     writable.write(`${line}\n`);
-//     //     count++;
-//     //   }
-//     // }
-//   }).on('close', () => {
-//     response.end('Wrting is done!')
-//   });
-// })
 
 module.exports = app;

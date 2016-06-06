@@ -6,7 +6,7 @@
   </head>
   <body>
     <div>
-      <select id="logicType">
+      <select id="expansionType">
         <option value="1" selected>records</option> 
         <option value="2">fields</option>
         <option value="3">records and fields</option>
@@ -17,9 +17,9 @@
     </div>
     <script>
       function execute () {
-        let logicType = +document.querySelector('#logicType').value;
+        let expansionType = +document.querySelector('#expansionType').value;
         let repetitionCount = +document.querySelector('#repetitionCount').value;
-        const url = `/execute?logicType=${logicType}&repetitionCount=${repetitionCount}`;
+        const url = `/execute?expansionType=${expansionType}&repetitionCount=${repetitionCount}`;
 
         let request = new XMLHttpRequest();
 

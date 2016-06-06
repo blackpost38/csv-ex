@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node server.js"
+    "start": "babel-node server.js",
+    "build": "babel src -d build"
   },
   "author": "blackpost38@gmail.com",
   "license": "ISC",
@@ -12,5 +13,6 @@
   "dependencies": {
     "ejs": "^2.4.2",
     "express": "^4.13.4"
-  }
+  },
+  "devDependencies": {}
 }
