@@ -1,0 +1,5 @@
+# npm package folder
+node_modules
+
+# visual code config
+.vscode
