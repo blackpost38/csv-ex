@@ -15,22 +15,78 @@ app.get('/', (request, response) => {
 })
 
 app.get('/execute', (request, response) => {
+  const logicType = +request.query.logicType;
+  const repetitionCount = +request.query.repetitionCount;
+  console.log('params', logicType, repetitionCount)
+
   var line_index = 1;
   const writable = fs.createWriteStream(NEW_FILE_DIR); 
   const rl = readline.createInterface({
     input: fs.createReadStream(TARGET_FILE_DIR)
   });
   rl.on('line', (line) => {
-    // extending records logic
-    if (line_index === 1) { // if it is header
-      writable.write(`${line}\n`);
-      line_index++;
-    } else {
-      var count = 0
-      while (count < REPETITION_COUNT) {
-        writable.write(`${line}\n`);
-        count++;
-      }
+    switch (logicType) {
+      case 3:
+        // extending fields and records logic
+        if (line_index === 1) {
+          var fields = line.split(',');
+          var newFields = [];
+          var count = 0;
+          while (count < repetitionCount) {
+            newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
+            count++;
+          }
+          writable.write(newFields.join(',') + '\n');
+          line_index++;
+        } else {
+          var countRocord = 0; 
+          while (countRocord < repetitionCount) {
+            var countField = 0;
+            var newRecords = [];
+            while (countField < repetitionCount) {
+              newRecords.push(line);
+              countField++;
+            }
+            writable.write(newRecords.join(',') + '\n');
+            countRocord++; 
+          }
+        }
+        break;
+      case 2:
+        // extending fields logic
+        if (line_index === 1) {
+          var fields = line.split(',');
+          var newFields = [];
+          var count = 0;
+          while (count < repetitionCount) {
+            newFields = newFields.concat(fields.map((field) => `${field}_${count}`));
+            count++;
+          }
+          writable.write(newFields.join(',') + '\n');
+          line_index++;
+        } else {
+          var count = 0;
+          var newRecords = [];
+          while (count < repetitionCount) {
+            newRecords.push(line);
+            count++;
+          }
+          writable.write(newRecords.join(',') + '\n');
+        }
+        break;
+      case 1:
+      default: 
+        // extending records logic
+        if (line_index === 1) { // if it is header
+          writable.write(`${line}\n`);
+          line_index++;
+        } else {
+          var count = 0
+          while (count < repetitionCount) {
+            writable.write(`${line}\n`);
+            count++;
+          }
+        }
     }
   }).on('close', () => {
     response.json({
